@@ -3,7 +3,13 @@ using UnityEngine.InputSystem;
 
 public class CompanyController : MonoBehaviour
 {
-    public float speed = 5f;
+    public float speed = 12f;
+    private Rigidbody rb;
+
+    private void Awake()
+    {
+        rb = GetComponent<Rigidbody>();
+    }
 
     private void Start()
     {
@@ -12,6 +18,9 @@ public class CompanyController : MonoBehaviour
 
     private void Update()
     {
+        if (Keyboard.current == null)
+            return;
+
         Vector2 movement = Vector2.zero;
 
         if (Keyboard.current.upArrowKey.isPressed)
@@ -26,9 +35,19 @@ public class CompanyController : MonoBehaviour
         if (Keyboard.current.rightArrowKey.isPressed)
             movement.x += 1;
 
-        Vector3 direction = new Vector3(movement.x, 0, movement.y);
+        if (movement.sqrMagnitude > 0.001f)
+        {
+            Vector3 direction = new Vector3(movement.x, 0, movement.y).normalized;
 
-        transform.position += direction * speed * Time.deltaTime;
+            if (rb != null && rb.isKinematic)
+            {
+                rb.MovePosition(rb.position + direction * speed * Time.deltaTime);
+            }
+            else
+            {
+                transform.position += direction * speed * Time.deltaTime;
+            }
+        }
     }
 
     private void RestoreWorldPosition()
@@ -40,6 +59,10 @@ public class CompanyController : MonoBehaviour
             return;
 
         transform.position = GameManager.Instance.CompanyWorldPosition;
+        if (rb != null)
+        {
+            rb.position = GameManager.Instance.CompanyWorldPosition;
+        }
 
         Debug.Log("Posición de compañía restaurada: " + transform.position);
     }

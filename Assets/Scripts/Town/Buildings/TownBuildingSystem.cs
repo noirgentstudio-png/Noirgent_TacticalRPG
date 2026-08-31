@@ -23,6 +23,11 @@ public class TownBuildingSystem : MonoBehaviour
             return;
         }
 
+        if (GameManager.Instance != null)
+        {
+            GameManager.Instance.PreviousScene = "TownScene";
+        }
+
         Debug.Log("Entrando al edificio: " + sceneName);
 
         if (SceneLoader.Instance == null)
