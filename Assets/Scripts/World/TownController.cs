@@ -27,8 +27,6 @@ public class TownController : MonoBehaviour
             enteringTown = false;
 
             UIManager.Instance.HideTownPanel();
-
-            GameManager.Instance.ExitTown();
         }
     }
 
