@@ -69,6 +69,28 @@ public class GameManager : MonoBehaviour
         SceneLoader.Instance.LoadScene(sceneName);
     }
 
+    public void EnterCombat(string encounterName = "Banda de Bandidos", string sceneName = "CombatScene")
+    {
+        PreviousScene = "WorldPrototype";
+
+        SaveCompanyPosition();
+
+        if (UIManager.Instance != null)
+        {
+            UIManager.Instance.ShowMessage("¡Iniciando combate contra " + encounterName + "!");
+        }
+
+        Debug.Log("Iniciando combate contra " + encounterName);
+
+        if (SceneLoader.Instance == null)
+        {
+            Debug.LogError("No existe un SceneLoader.");
+            return;
+        }
+
+        SceneLoader.Instance.LoadScene(sceneName);
+    }
+
     private void SaveCompanyPosition()
     {
         CompanyController company = FindFirstObjectByType<CompanyController>();
