@@ -11,34 +11,65 @@ public class UIManager : MonoBehaviour
     public GameObject townPanel;
     public TextMeshProUGUI townNameText;
 
+    private Coroutine clearCoroutine;
+
     private void Awake()
     {
         Instance = this;
     }
 
-    public void ShowMessage(string message)
+    private void Start()
     {
-        messageText.text = message;
-
-        StopAllCoroutines();
-        StartCoroutine(ClearMessage());
+        if (messageText != null && !string.IsNullOrEmpty(messageText.text))
+        {
+            ShowMessage(messageText.text, 10f);
+        }
     }
 
-    private IEnumerator ClearMessage()
+    public void ShowMessage(string message, float duration = 10f)
     {
-        yield return new WaitForSeconds(3f);
+        if (messageText == null)
+            return;
 
-        messageText.text = "";
+        messageText.text = message;
+        messageText.gameObject.SetActive(true);
+
+        if (clearCoroutine != null)
+        {
+            StopCoroutine(clearCoroutine);
+        }
+
+        clearCoroutine = StartCoroutine(ClearMessageRoutine(duration));
+    }
+
+    private IEnumerator ClearMessageRoutine(float delay)
+    {
+        yield return new WaitForSeconds(delay);
+
+        if (messageText != null)
+        {
+            messageText.text = "";
+        }
     }
 
     public void ShowTownPanel(string townName)
     {
-        townPanel.SetActive(true);
-        townNameText.text = townName;
+        if (townPanel != null)
+        {
+            townPanel.SetActive(true);
+        }
+
+        if (townNameText != null)
+        {
+            townNameText.text = townName;
+        }
     }
 
     public void HideTownPanel()
     {
-        townPanel.SetActive(false);
+        if (townPanel != null)
+        {
+            townPanel.SetActive(false);
+        }
     }
 }

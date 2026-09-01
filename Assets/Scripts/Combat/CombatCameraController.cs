@@ -4,24 +4,25 @@ using UnityEngine.InputSystem;
 public class CombatCameraController : MonoBehaviour
 {
     [Header("Velocidad de movimiento")]
-    public float panSpeed = 12f;
-    public float zoomSpeed = 5f;
+    public float panSpeed = 15f;
+    public float zoomStep = 2.5f;
+    public float zoomSmoothing = 15f;
 
     [Header("Límites de Zoom")]
-    public float minZoom = 6f;
-    public float maxZoom = 20f;
+    public float minZoom = 5f;
+    public float maxZoom = 25f;
 
     [Header("Límites de desplazamiento")]
-    public Vector2 panLimitX = new Vector2(-15f, 15f);
-    public Vector2 panLimitZ = new Vector2(-15f, 15f);
+    public Vector2 panLimitX = new Vector2(-20f, 20f);
+    public Vector2 panLimitZ = new Vector2(-20f, 20f);
 
-    private Camera cam;
+    private float targetZoom = 12f;
     private float currentZoom = 12f;
 
     private void Awake()
     {
-        cam = GetComponent<Camera>();
         currentZoom = transform.position.y;
+        targetZoom = currentZoom;
     }
 
     private void Update()
@@ -47,7 +48,7 @@ public class CombatCameraController : MonoBehaviour
             Vector3 targetPos = transform.position + move.normalized * panSpeed * Time.deltaTime;
             targetPos.x = Mathf.Clamp(targetPos.x, panLimitX.x, panLimitX.y);
             targetPos.z = Mathf.Clamp(targetPos.z, panLimitZ.x, panLimitZ.y);
-            targetPos.y = transform.position.y;
+            targetPos.y = currentZoom;
 
             transform.position = targetPos;
         }
@@ -63,13 +64,15 @@ public class CombatCameraController : MonoBehaviour
 
         if (Mathf.Abs(scroll) > 0.01f)
         {
-            currentZoom -= (scroll > 0 ? 1f : -1f) * zoomSpeed * Time.deltaTime * 5f;
-            currentZoom = Mathf.Clamp(currentZoom, minZoom, maxZoom);
-
-            Vector3 pos = transform.position;
-            pos.y = Mathf.Lerp(pos.y, currentZoom, Time.deltaTime * 10f);
-            transform.position = pos;
+            float scrollDir = Mathf.Sign(scroll);
+            targetZoom -= scrollDir * zoomStep;
+            targetZoom = Mathf.Clamp(targetZoom, minZoom, maxZoom);
         }
+
+        currentZoom = Mathf.Lerp(currentZoom, targetZoom, Time.deltaTime * zoomSmoothing);
+
+        Vector3 pos = transform.position;
+        pos.y = currentZoom;
+        transform.position = pos;
     }
 }
-

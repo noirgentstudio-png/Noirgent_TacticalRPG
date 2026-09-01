@@ -1,34 +1,79 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.SceneManagement;
 
 public class SceneBackController : MonoBehaviour
 {
     [Header("Escena de regreso")]
-    [SerializeField] private string returnSceneName;
+    [SerializeField] private string returnSceneName = "WorldPrototype";
 
     private void Update()
     {
-        if (Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame)
+        bool backPressed = false;
+
+        if (Keyboard.current != null)
+        {
+            if (Keyboard.current.escapeKey.wasPressedThisFrame || Keyboard.current.backspaceKey.wasPressedThisFrame)
+            {
+                backPressed = true;
+            }
+        }
+#if !ENABLE_INPUT_SYSTEM
+        if (Input.GetKeyDown(KeyCode.Escape) || Input.GetKeyDown(KeyCode.Backspace))
+        {
+            backPressed = true;
+        }
+#endif
+
+        if (backPressed)
         {
             ReturnToPreviousScene();
         }
     }
-    private void ReturnToPreviousScene()
+
+    public void ReturnToPreviousScene()
     {
+        string currentScene = SceneManager.GetActiveScene().name;
         string targetScene = returnSceneName;
 
-        if (GameManager.Instance != null && !string.IsNullOrEmpty(GameManager.Instance.PreviousScene))
+        if (currentScene == "TownScene")
+        {
+            // Salir de la ciudad siempre regresa al mapa del mundo
+            targetScene = "WorldPrototype";
+
+            if (GameManager.Instance != null)
+            {
+                GameManager.Instance.PreviousScene = "WorldPrototype";
+            }
+        }
+        else if (currentScene == "MarketScene")
+        {
+            // El mercado regresa a la escena de donde vino (TownScene o WorldPrototype)
+            if (GameManager.Instance != null && !string.IsNullOrEmpty(GameManager.Instance.PreviousScene) && GameManager.Instance.PreviousScene != "MarketScene")
+            {
+                targetScene = GameManager.Instance.PreviousScene;
+            }
+            else
+            {
+                targetScene = !string.IsNullOrEmpty(returnSceneName) ? returnSceneName : "TownScene";
+            }
+        }
+        else if (currentScene == "CombatScene")
+        {
+            targetScene = "WorldPrototype";
+        }
+        else if (GameManager.Instance != null && !string.IsNullOrEmpty(GameManager.Instance.PreviousScene) && GameManager.Instance.PreviousScene != currentScene)
         {
             targetScene = GameManager.Instance.PreviousScene;
         }
 
-        if (string.IsNullOrEmpty(targetScene))
+        // Seguridad anti-bucle: si targetScene es la misma escena activa, volver al mapa del mundo
+        if (string.IsNullOrEmpty(targetScene) || targetScene == currentScene)
         {
-            Debug.LogWarning("SceneBackController: No se indicó una escena de regreso.");
-            return;
+            targetScene = "WorldPrototype";
         }
 
-        Debug.Log("Regresando a: " + targetScene);
+        Debug.Log($"SceneBackController: Saliendo de '{currentScene}' -> Regresando a '{targetScene}'");
 
         if (SceneLoader.Instance != null)
         {
@@ -36,9 +81,8 @@ public class SceneBackController : MonoBehaviour
         }
         else
         {
-            Debug.LogWarning("SceneBackController: No existe SceneLoader. Cargando directamente la escena.");
-
-            UnityEngine.SceneManagement.SceneManager.LoadScene(targetScene);
+            Debug.LogWarning("SceneBackController: No existe SceneLoader. Cargando directamente con SceneManager.");
+            SceneManager.LoadScene(targetScene);
         }
     }
 }

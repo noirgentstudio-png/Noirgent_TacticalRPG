@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 
 public class MarketCameraController : MonoBehaviour
@@ -31,6 +32,10 @@ public class MarketCameraController : MonoBehaviour
     private void Update()
     {
         if (Mouse.current == null)
+            return;
+
+        // Si el puntero está sobre la interfaz de usuario, no girar la cámara
+        if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject())
             return;
 
         Vector2 mouseDelta = Mouse.current.delta.ReadValue();
